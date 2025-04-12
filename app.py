@@ -135,6 +135,11 @@ def start_mqtt_client():
             print("Retrying in 5 seconds...")
             time.sleep(5)
 
+def before_first_request():
+    print("[Flask] Starting MQTT client...")
+    Thread(target=start_mqtt).start()
+
+
 @app.route('/')
 def dashboard():
     return render_template('dashboard.html')
@@ -244,4 +249,4 @@ if __name__ == '__main__':
     mqtt_thread = Thread(target=start_mqtt_client)
     mqtt_thread.daemon = True
     mqtt_thread.start()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
