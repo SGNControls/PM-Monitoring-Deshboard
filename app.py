@@ -15,7 +15,7 @@ app = Flask(__name__)
 
 # Configuration
 MQTT_BROKER = os.getenv('MQTT_BROKER')
-MQTT_PORT =  int(os.getenv('MQTT_PORT'))
+MQTT_PORT = int(os.getenv('MQTT_PORT', 8883))
 MQTT_USER = os.getenv('MQTT_USER')
 MQTT_PASSWORD = os.getenv('MQTT_PASSWORD')
 TOPICS = ["dustrak/data", "dustrak/status", "dustrak/control"]
