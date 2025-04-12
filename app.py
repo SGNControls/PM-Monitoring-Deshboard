@@ -141,6 +141,28 @@ def dashboard():
 
 @app.route('/api/data')
 def get_data():
+    # Calculate threshold exceedance frequency
+    exceedances = {
+        "pm1": 0,
+        "pm2_5": 0,
+        "pm4": 0,
+        "pm10": 0,
+        "tsp": 0
+    }
+    
+    for record in history["full_records"]:
+        thresholds = latest_data["status"]["thresholds"]
+        if record["PM1"] > thresholds["pm1"]: exceedances["pm1"] += 1
+        if record["PM2.5"] > thresholds["pm2.5"]: exceedances["pm2_5"] += 1
+        if record["PM4"] > thresholds["pm4"]: exceedances["pm4"] += 1
+        if record["PM10"] > thresholds["pm10"]: exceedances["pm10"] += 1
+        if record["TSP"] > thresholds["tsp"]: exceedances["tsp"] += 1
+
+    total = len(history["full_records"]) or 1  # Avoid division by zero
+    exceedance_percent = {
+        k: (v / total) * 100 for k, v in exceedances.items()
+    }
+
     return jsonify({
         "sensor": latest_data["sensor"],
         "status": latest_data["status"],
@@ -151,7 +173,8 @@ def get_data():
             "pm4": list(history["pm4"]),
             "pm10": list(history["pm10"]),
             "tsp": list(history["tsp"])
-        }
+        },
+        "exceedance_percent": exceedance_percent  # Send to frontend
     })
 
 # In the update_thresholds endpoint:

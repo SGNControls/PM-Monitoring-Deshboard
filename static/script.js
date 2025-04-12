@@ -87,7 +87,6 @@ function initializeCharts() {
                     pointHoverRadius: 5,
                     tension: 0.3,
                     fill: true,
-                    hidden: true
                 }
             ]
         },
@@ -520,6 +519,17 @@ function updateCharts(data) {
         const date = new Date(timestamp);
         return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     });
+
+    if (data.exceedance_percent) {
+        window.thresholdFrequencyChart.data.datasets[0].data = [
+            data.exceedance_percent.pm1,
+            data.exceedance_percent.pm2_5,
+            data.exceedance_percent.pm4,
+            data.exceedance_percent.pm10,
+            data.exceedance_percent.tsp
+        ];
+        window.thresholdFrequencyChart.update();
+    }
     
     // Update time chart
     window.timeChart.data.labels = labels;
@@ -701,5 +711,5 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('export-btn').addEventListener('click', exportData);
     
     // Set up refresh interval
-    setInterval(fetchData, 60000); // Refresh every minute
+    setInterval(fetchData, 600); // Refresh every minute
 });
