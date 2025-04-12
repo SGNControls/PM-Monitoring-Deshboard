@@ -14,10 +14,10 @@ load_dotenv()
 app = Flask(__name__)
 
 # Configuration
-MQTT_BROKER = os.getenv('MQTT_BROKER')
-MQTT_PORT = int(os.getenv('MQTT_PORT', 8883))
-MQTT_USER = os.getenv('MQTT_USER')
-MQTT_PASSWORD = os.getenv('MQTT_PASSWORD')
+MQTT_BROKER = "bdede2f33962480da81d81dd80553dbc.s1.eu.hivemq.cloud"
+MQTT_PORT = 8883
+MQTT_USER = "anshj"
+MQTT_PASSWORD = "anshJAIN@123"
 TOPICS = ["dustrak/data", "dustrak/status", "dustrak/control"]
 
 # Data storage
