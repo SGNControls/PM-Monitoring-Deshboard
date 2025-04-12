@@ -99,11 +99,23 @@ def record_history(data):
 
 def publish_thresholds(thresholds):
     if mqtt_client:
-        mqtt_client.publish(
-            "dustrak/control",
-            json.dumps({"thresholds": thresholds}),
-            qos=1
-        )
+        try:
+            print(f"Publishing thresholds: {thresholds}")  # Debug
+            mqtt_client.publish(
+                "dustrak/control",
+                json.dumps({
+                    "thresholds": {
+                        "pm1": float(thresholds.get("pm1")),
+                        "pm2.5": float(thresholds.get("pm2.5")),
+                        "pm4": float(thresholds.get("pm4")),
+                        "pm10": float(thresholds.get("pm10")),
+                        "tsp": float(thresholds.get("tsp"))
+                    }
+                }),
+                qos=1
+            )
+        except Exception as e:
+            print(f"Error publishing thresholds: {e}")
 
 def start_mqtt_client():
     global mqtt_client
@@ -142,23 +154,30 @@ def get_data():
         }
     })
 
+# In the update_thresholds endpoint:
 @app.route('/api/update_thresholds', methods=['POST'])
 def update_thresholds():
     try:
         thresholds = request.json
-        # Validate thresholds are numbers
-        for key, value in thresholds.items():
-            if not isinstance(value, (int, float)) or value < 0:
+        print(f"Received threshold update: {thresholds}")  # Debug
+        
+        # Validate and convert all values to float
+        validated = {}
+        for key in ["pm1", "pm2.5", "pm4", "pm10", "tsp"]:
+            value = thresholds.get(key)
+            try:
+                validated[key] = float(value) if value is not None else latest_data["status"]["thresholds"][key]
+            except (ValueError, TypeError):
                 return jsonify({"status": "error", "message": f"Invalid value for {key}"}), 400
         
-        # Update local storage
-        latest_data["status"]["thresholds"].update(thresholds)
+        # Update and publish
+        latest_data["status"]["thresholds"].update(validated)
+        publish_thresholds(validated)
         
-        # Publish to MQTT
-        publish_thresholds(thresholds)
+        return jsonify({"status": "success", "thresholds": validated})
         
-        return jsonify({"status": "success"})
     except Exception as e:
+        print(f"Threshold update error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/export_csv')

@@ -27,6 +27,7 @@ Scripts/
 .env
 .env.local
 .env.*.local
+.gitignore
 
 # IDE and editor
 .vscode/
