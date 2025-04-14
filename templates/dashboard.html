@@ -9,6 +9,8 @@
     <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
 </head>
 <body>
     <div class="container-fluid">
@@ -51,6 +53,19 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        PM Levels Over Time
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="timeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         <!-- Current Values -->
         <div class="row mb-4">
@@ -123,20 +138,8 @@
         </div>
 
         <!-- Charts -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        PM Levels Over Time
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="timeChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
+        
+            <div class="col-md-12">
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
                         Current vs Threshold

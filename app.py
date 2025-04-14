@@ -1,4 +1,5 @@
 from flask import Flask, render_template, jsonify, request, make_response
+from flask_socketio import SocketIO
 import paho.mqtt.client as mqtt
 from threading import Thread
 import json
@@ -9,9 +10,13 @@ import csv
 import io
 from dotenv import load_dotenv
 import os
+import eventlet
+
+eventlet.monkey_patch()
 
 load_dotenv()
 app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Configuration
 MQTT_BROKER = "bdede2f33962480da81d81dd80553dbc.s1.eu.hivemq.cloud"
@@ -61,6 +66,19 @@ def on_message(client, userdata, msg):
         
         if msg.topic == "dustrak/data":
             # Store complete record for CSV export
+
+            socketio.emit('new_data', {
+                'sensor': latest_data["sensor"],
+                'status': latest_data["status"],
+                'history': {
+                    "timestamps": list(history["timestamps"]),
+                    "pm1": list(history["pm1"]),
+                    "pm2_5": list(history["pm2_5"]),
+                    "pm4": list(history["pm4"]),
+                    "pm10": list(history["pm10"]),
+                    "tsp": list(history["tsp"])
+                }
+            })
             full_record = {
                 "timestamp": datetime.now().isoformat(),
                 "PM1": payload.get("PM1", 0),
@@ -135,9 +153,6 @@ def start_mqtt_client():
             print("Retrying in 5 seconds...")
             time.sleep(5)
 
-def before_first_request():
-    print("[Flask] Starting MQTT client...")
-    Thread(target=start_mqtt).start()
 
 
 @app.route('/')
@@ -249,4 +264,4 @@ if __name__ == '__main__':
     mqtt_thread = Thread(target=start_mqtt_client)
     mqtt_thread.daemon = True
     mqtt_thread.start()
-    app.run(host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000, debug = True)

@@ -141,13 +141,15 @@ input:checked + .slider:before {
 
 .chart-container {
     position: relative;
-    height: 400px;  /* Increased from 350px */
+    height: auto;
+    min-height: 300px;
+    max-height: 450px;
     width: 100%;
-    margin-bottom: 20px;
 }
 
 @media (max-width: 768px) {
     .display-4 {
+        min-height: 300px;
         font-size: 1.8rem;
     }
 }

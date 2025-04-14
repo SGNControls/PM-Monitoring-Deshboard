@@ -423,13 +423,20 @@ function updateDashboard(data) {
             document.getElementById('pm4-threshold').textContent = data.status.thresholds.pm4 || '-';
             document.getElementById('pm10-threshold').textContent = data.status.thresholds.pm10 || '-';
             document.getElementById('tsp-threshold').textContent = data.status.thresholds.tsp || '-';
+
+            const updateIfNotFocused = (id, value) => {
+                const input = document.getElementById(id);
+                if (document.activeElement !== input) {
+                    input.value = value || '';
+                }
+            };  
             
             // Update threshold inputs
-            document.getElementById('pm1-threshold-input').value = data.status.thresholds.pm1 || '';
-            document.getElementById('pm2.5-threshold-input').value = data.status.thresholds["pm2.5"] || '';
-            document.getElementById('pm4-threshold-input').value = data.status.thresholds.pm4 || '';
-            document.getElementById('pm10-threshold-input').value = data.status.thresholds.pm10 || '';
-            document.getElementById('tsp-threshold-input').value = data.status.thresholds.tsp || '';
+            updateIfNotFocused('pm1-threshold-input', data.status.thresholds.pm1);
+            updateIfNotFocused('pm2.5-threshold-input', data.status.thresholds["pm2.5"]);
+            updateIfNotFocused('pm4-threshold-input', data.status.thresholds.pm4);
+            updateIfNotFocused('pm10-threshold-input', data.status.thresholds.pm10);
+            updateIfNotFocused('tsp-threshold-input', data.status.thresholds.tsp);
         }
     }
 }
@@ -698,6 +705,14 @@ function exportData() {
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
+
+    const socket = io();
+    socket.on('new_data', data => {
+        updateDashboard(data);
+        updateCharts(data);
+        checkThresholds(data);
+        calculateThresholdFrequency(data);
+    });
     initializeCharts();
     fetchData();
     
@@ -710,6 +725,4 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('mode-manual-btn').addEventListener('click', () => setSystemMode('manual'));
     document.getElementById('export-btn').addEventListener('click', exportData);
     
-    // Set up refresh interval
-    setInterval(fetchData, 600); // Refresh every minute
 });
