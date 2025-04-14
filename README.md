@@ -84,12 +84,6 @@ The dashboard provides an intuitive interface with:
 
 6. Access the dashboard at `http://localhost:5000`
 
-## 📱 Mobile View
-
-![Mobile View](https://via.placeholder.com/375x812)
-
-The dashboard is fully responsive and works beautifully on mobile devices.
-
 ## 🔧 Configuration
 
 ### Threshold Settings
