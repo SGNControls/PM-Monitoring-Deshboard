@@ -57,7 +57,7 @@ mqtt_client = None
 
 def on_connect(client, userdata, flags, rc, properties=None):
     print(f"Connected to MQTT broker with result code {rc}")
-    for topic in TOPICS:
+    for topic in TOPICS: 
         client.subscribe(topic)
 
 def on_message(client, userdata, msg):
