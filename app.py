@@ -1,3 +1,5 @@
+import eventlet
+eventlet.monkey_patch()
 from flask import Flask, render_template, jsonify, request, make_response
 from flask_socketio import SocketIO
 import paho.mqtt.client as mqtt
