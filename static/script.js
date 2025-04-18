@@ -695,12 +695,39 @@ function setSystemMode(mode) {
 
 // Export data to CSV
 function exportData() {
-    const dateRange = document.getElementById('date-range').value;
-    const startDate = prompt("Enter Start Date (YYYY-MM-DD):");
-    const endDate = prompt("Enter End Date (YYYY-MM-DD):");
-    if (startDate && endDate) {
-        window.location.href = `/api/export_csv?start=${startDate}&end=${endDate}`;
+    // Get the last 24 hours by default
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - 1); // Default to last 24 hours
+    
+    // Format dates as YYYY-MM-DD
+    const formatDate = (date) => date.toISOString().split('T')[0];
+    
+    // Create a more user-friendly date picker
+    const start = prompt("Enter Start Date (YYYY-MM-DD):", formatDate(startDate));
+    const end = prompt("Enter End Date (YYYY-MM-DD):", formatDate(endDate));
+    
+    if (start && end) {
+        // Validate dates
+        if (!isValidDate(start)) {
+            createAlert('Invalid start date format. Use YYYY-MM-DD', 'danger');
+            return;
+        }
+        if (!isValidDate(end)) {
+            createAlert('Invalid end date format. Use YYYY-MM-DD', 'danger');
+            return;
+        }
+        
+        // Open download in new tab
+        window.open(`/api/export_csv?start=${start}&end=${end}`, '_blank');
     }
+}
+
+function isValidDate(dateString) {
+    const regEx = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateString.match(regEx)) return false;
+    const d = new Date(dateString);
+    return d instanceof Date && !isNaN(d);
 }
 
 // Initialize dashboard
@@ -723,6 +750,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('relay-off-btn').addEventListener('click', () => toggleRelay(false));
     document.getElementById('mode-auto-btn').addEventListener('click', () => setSystemMode('auto'));
     document.getElementById('mode-manual-btn').addEventListener('click', () => setSystemMode('manual'));
-    document.getElementById('export-btn').addEventListener('click', exportData);
+    document.getElementById('export-csv').addEventListener('click', exportData);
+
     
 });

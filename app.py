@@ -12,7 +12,7 @@ import csv
 import io
 from dotenv import load_dotenv
 import os
-import eventlet
+
 
 eventlet.monkey_patch()
 
@@ -68,19 +68,6 @@ def on_message(client, userdata, msg):
         
         if msg.topic == "dustrak/data":
             # Store complete record for CSV export
-
-            socketio.emit('new_data', {
-                'sensor': latest_data["sensor"],
-                'status': latest_data["status"],
-                'history': {
-                    "timestamps": list(history["timestamps"]),
-                    "pm1": list(history["pm1"]),
-                    "pm2_5": list(history["pm2_5"]),
-                    "pm4": list(history["pm4"]),
-                    "pm10": list(history["pm10"]),
-                    "tsp": list(history["tsp"])
-                }
-            })
             full_record = {
                 "timestamp": datetime.now().isoformat(),
                 "PM1": payload.get("PM1", 0),
@@ -94,7 +81,19 @@ def on_message(client, userdata, msg):
             # Update sensor data
             latest_data["sensor"] = payload
             record_history(payload)
-            
+
+            socketio.emit('new_data', {
+                'sensor': latest_data["sensor"],
+                'status': latest_data["status"],
+                'history': {
+                    "timestamps": list(history["timestamps"]),
+                    "pm1": list(history["pm1"]),
+                    "pm2_5": list(history["pm2_5"]),
+                    "pm4": list(history["pm4"]),
+                    "pm10": list(history["pm10"]),
+                    "tsp": list(history["tsp"])
+                }
+            })      
         elif msg.topic == "dustrak/status":
             # Update system status
             latest_data["status"].update(payload)
@@ -234,29 +233,38 @@ def export_csv():
         return "Start and end dates are required.", 400
     
     try:
-        start_dt = datetime.fromisoformat(start_date)
-        end_dt = datetime.fromisoformat(end_date)
+        start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+        end_dt = datetime.strptime(end_date, "%Y-%m-%d")
     except ValueError:
         return "Invalid date format. Use YYYY-MM-DD", 400
 
+    # Add time to cover the full day
+    end_dt = end_dt.replace(hour=23, minute=59, second=59)
+    
     si = io.StringIO()
     cw = csv.writer(si)
     cw.writerow(["Timestamp", "PM1", "PM2.5", "PM4", "PM10", "TSP"])
 
     for record in history["full_records"]:
-        ts = datetime.fromisoformat(record["timestamp"])
-        if start_dt <= ts <= end_dt:
-            cw.writerow([
-                record["timestamp"],
-                record["PM1"],
-                record["PM2.5"],
-                record["PM4"],
-                record["PM10"],
-                record["TSP"]
-            ])
+        try:
+            ts = datetime.fromisoformat(record["timestamp"])
+            if start_dt <= ts <= end_dt:
+                cw.writerow([
+                    record["timestamp"],
+                    record.get("PM1", 0),
+                    record.get("PM2.5", 0),
+                    record.get("PM4", 0),
+                    record.get("PM10", 0),
+                    record.get("TSP", 0)
+                ])
+        except (KeyError, ValueError):
+            continue
+    
+    if si.tell() == 0:  # Check if any data was written
+        cw.writerow(["No data available for the selected date range"])
     
     output = make_response(si.getvalue())
-    output.headers["Content-Disposition"] = "attachment; filename=dust_data_export.csv"
+    output.headers["Content-Disposition"] = f"attachment; filename=dust_data_{start_date}_to_{end_date}.csv"
     output.headers["Content-type"] = "text/csv"
     return output
 
